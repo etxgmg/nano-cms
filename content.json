@@ -1,0 +1,49 @@
+{
+  "blocks": [
+    {
+      "id": "hero",
+      "type": "imageText",
+      "label": "Översta delen",
+      "editable": {
+        "title": "Välkommen till oss",
+        "text": "Vi erbjuder tjänster av hög kvalitet med personlig service. Kontakta oss idag.",
+        "image": "bilder/hero.jpg",
+        "alt": "Framsidesbild",
+        "buttonText": "Ring oss nu",
+        "buttonHref": "tel:+46701234567"
+      }
+    },
+    {
+      "id": "about",
+      "type": "paragraph",
+      "label": "Om oss",
+      "editable": {
+        "title": "Om oss",
+        "text": "Vi är ett familjeföretag med lång erfarenhet. Vår passion är att leverera det lilla extra och skapa långvariga relationer med våra kunder."
+      }
+    },
+    {
+      "id": "services",
+      "type": "imageText",
+      "label": "Våra tjänster",
+      "editable": {
+        "title": "Vad vi erbjuder",
+        "text": "Vårt utbud täcker hela processen från planering till färdigt resultat. Vi anpassar alltid lösningen efter dina behov.",
+        "image": "bilder/services.jpg",
+        "alt": "Bild på våra tjänster"
+      }
+    },
+    {
+      "id": "contact",
+      "type": "contact",
+      "label": "Kontaktuppgifter",
+      "editable": {
+        "title": "Kontakta oss",
+        "text": "Vi svarar snabbt och hjälper dig gärna.",
+        "email": "info@example.se",
+        "tel": "+46 70 123 45 67",
+        "address": "Storgatan 1, 123 45 Staden"
+      }
+    }
+  ]
+}
