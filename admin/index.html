@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Admin">
+<title>Redigera webbplats</title>
+<style>
+/* ====================================================
+   DESIGN TOKENS
+==================================================== */
+:root {
+  --primary:   #1a73e8;
+  --primary-dk:#1557b0;
+  --success:   #1e7e34;
+  --danger:    #c62828;
+  --warn:      #e65100;
+  --text:      #202124;
+  --muted:     #5f6368;
+  --border:    #dadce0;
+  --bg:        #f1f3f4;
+  --card:      #ffffff;
+  --radius-lg: 16px;
+  --radius:    10px;
+  --radius-sm: 6px;
+  --shadow:    0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  --tap:       rgba(26,115,232,0.08);
+}
+
+/* ====================================================
+   RESET & BASE
+==================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+  background: none;
+}
+
+input, textarea {
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ====================================================
+   SCREENS
+==================================================== */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ====================================================
+   LOGIN SCREEN
+==================================================== */
+#screen-login {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.login-box {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 32px 24px 28px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-logo {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.login-box h1 {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.login-box .login-sub {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.form-field { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 14px 12px;
+  font-size: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-input::placeholder { color: #aaa; }
+
+.login-hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.login-hint a { color: var(--primary); }
+
+/* ====================================================
+   BUTTONS
+==================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  transition: opacity 0.15s, transform 0.1s;
+  cursor: pointer;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active { opacity: 0.75; transform: scale(0.98); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.btn-primary   { background: var(--primary);   color: #fff; width: 100%; font-size: 16px; padding: 16px; }
+.btn-secondary { background: var(--bg);         color: var(--text); border: 1.5px solid var(--border); flex: 1; }
+.btn-ghost-red { background: transparent;       color: var(--danger); border: 1.5px solid var(--danger); padding: 12px 14px; }
+
+/* ====================================================
+   APP HEADER
+==================================================== */
+.app-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-header h1 { font-size: 17px; font-weight: 700; flex: 1; }
+
+.header-action {
+  color: var(--muted);
+  font-size: 22px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.header-action:active { background: var(--tap); }
+
+/* ====================================================
+   MAIN CONTENT (edit screen)
+==================================================== */
+.main-scroll {
+  padding: 16px 16px 120px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.blocks-intro {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 0 8px;
+}
+
+/* ====================================================
+   BLOCK CARDS
+==================================================== */
+.block-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.block-header {
+  padding: 16px 16px 4px;
+}
+
+.block-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.block-fields { padding: 8px 16px 16px; }
+
+/* ====================================================
+   FIELD ROW
+==================================================== */
+.field-row { margin-top: 14px; }
+
+.field-label-row {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.55px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.field-input {
+  display: block;
+  width: 100%;
+  padding: 13px 12px;
+  font-size: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.15s;
+  line-height: 1.4;
+}
+
+.field-input:focus { outline: none; border-color: var(--primary); }
+
+textarea.field-input {
+  resize: vertical;
+  min-height: 88px;
+}
+
+/* ====================================================
+   IMAGE FIELD
+==================================================== */
+.img-field-wrap {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #f8f8f8;
+}
+
+.img-preview-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  background: #ececec;
+  overflow: hidden;
+}
+
+.img-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.img-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.img-empty-icon { font-size: 32px; }
+
+.img-new-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+.img-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+}
+
+/* ====================================================
+   PUBLISH BAR (fixed bottom)
+==================================================== */
+.publish-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 50;
+}
+
+.publish-status {
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 500;
+  min-height: 20px;
+  margin-top: 8px;
+}
+
+.publish-status.ok  { color: var(--success); }
+.publish-status.err { color: var(--danger);  }
+.publish-status.inf { color: var(--primary); }
+
+/* ====================================================
+   LOADING OVERLAY
+==================================================== */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 200;
+  backdrop-filter: blur(3px);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3.5px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-label {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ====================================================
+   ERROR MESSAGE INLINE
+==================================================== */
+.inline-error {
+  background: #fce8e6;
+  border: 1px solid #f4b8b3;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--danger);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* ====================================================
+   HIDDEN FILE INPUT
+==================================================== */
+#image-file-input { display: none; }
+
+/* ====================================================
+   RESPONSIVE CAP
+==================================================== */
+@media (min-width: 641px) {
+  .publish-bar { left: 50%; right: auto; width: 640px; transform: translateX(-50%); }
+}
+</style>
+</head>
+<body>
+
+<!-- ======================================================
+     LOGIN SCREEN
+====================================================== -->
+<div id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">✏️</div>
+    <h1>Redigera webbplats</h1>
+    <p class="login-sub">Ange din GitHub-nyckel för att logga in. Nyckeln sparas bara under denna session.</p>
+
+    <div id="login-error-wrap" style="display:none;">
+      <div class="inline-error" id="login-error-msg"></div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="token-input">GitHub-nyckel</label>
+      <input
+        class="form-input"
+        type="password"
+        id="token-input"
+        placeholder="ghp_xxxxxxxxxxxx"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="none"
+        spellcheck="false"
+      >
+    </div>
+
+    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">
+      Logga in
+    </button>
+
+    <p class="login-hint">
+      Behöver du en nyckel?
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=nano-cms" target="_blank">
+        Skapa här på GitHub
+      </a>
+      &nbsp;(välj "repo").
+    </p>
+  </div>
+</div>
+
+<!-- ======================================================
+     EDIT SCREEN
+====================================================== -->
+<div id="screen-edit" class="screen">
+
+  <header class="app-header">
+    <h1>Redigera webbplats</h1>
+    <button class="header-action" title="Logga ut" onclick="doLogout()">⎋</button>
+  </header>
+
+  <div class="main-scroll" id="main-scroll">
+    <p class="blocks-intro">Tryck i ett fält för att redigera. Tryck på "Publicera" när du är klar.</p>
+    <div id="blocks-container"></div>
+  </div>
+
+  <div class="publish-bar">
+    <button class="btn btn-primary" id="publish-btn" onclick="doPublish()">
+      Publicera ändringar
+    </button>
+    <div class="publish-status" id="publish-status"></div>
+  </div>
+
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="image-file-input" accept="image/*">
+
+<!-- Loading overlay -->
+<div id="loading-overlay" style="display:none;">
+  <div class="spinner"></div>
+  <div class="loading-label" id="loading-label">Laddar...</div>
+</div>
+
+<!-- ======================================================
+     JAVASCRIPT
+====================================================== -->
+<script>
+'use strict';
+
+/* --------------------------------------------------
+   CONFIG — anpassa för ditt repo
+-------------------------------------------------- */
+const CFG = {
+  owner:       'etxgmg',
+  repo:        'nano-cms',
+  branch:      'main',
+  contentFile: 'content.json',
+  imagesDir:   'bilder'
+};
+
+/* --------------------------------------------------
+   STATE
+-------------------------------------------------- */
+let _token       = '';
+let _content     = null;   // parsed content.json object
+let _contentSHA  = '';     // current SHA of content.json on GitHub
+let _pending     = {};     // fieldKey -> { base64, newPath }
+let _activePick  = null;   // fieldKey being picked: 'blockId::fieldName'
+
+/* --------------------------------------------------
+   SWEDISH LABELS FOR KNOWN FIELD NAMES
+-------------------------------------------------- */
+const LABELS = {
+  title:      'Rubrik',
+  heading:    'Rubrik',
+  subtitle:   'Underrubrik',
+  text:       'Text',
+  body:       'Brödtext',
+  description:'Beskrivning',
+  content:    'Innehåll',
+  quote:      'Citat',
+  caption:    'Bildtext',
+  image:      'Bild',
+  img:        'Bild',
+  photo:      'Foto',
+  alt:        'Bildbeskrivning',
+  buttonText: 'Knapptext',
+  linkText:   'Länktext',
+  buttonHref: 'Knappens adress (t.ex. tel: eller https://)',
+  href:       'Länkadress',
+  url:        'Länk',
+  email:      'E-postadress',
+  tel:        'Telefonnummer',
+  phone:      'Telefonnummer',
+  name:       'Namn',
+  address:    'Adress',
+};
+
+function getLabel(key) {
+  return LABELS[key] || (key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'));
+}
+
+/* --------------------------------------------------
+   FIELD TYPE DETECTION
+-------------------------------------------------- */
+function fieldType(key) {
+  const k = key.toLowerCase();
+  if (k === 'image' || k === 'img' || k === 'photo'
+      || k.endsWith('image') || k.endsWith('img')) return 'image';
+  if (k === 'alt' || k.endsWith('alt'))             return 'alt';
+  if (k === 'email' || k.includes('email'))          return 'email';
+  if (k === 'tel' || k === 'phone'
+      || k.includes('phone'))                        return 'tel';
+  if (k.includes('href') || k === 'url'
+      || k === 'link' || k.endsWith('url'))          return 'url';
+  if (k === 'text' || k === 'body' || k === 'description'
+      || k === 'content' || k === 'quote'
+      || k === 'address')                            return 'textarea';
+  return 'text';
+}
+
+/* --------------------------------------------------
+   SCREEN MANAGEMENT
+-------------------------------------------------- */
+function showScreen(id) {
+  document.getElementById('screen-login').style.display = (id === 'login') ? 'flex' : 'none';
+  const editEl = document.getElementById('screen-edit');
+  editEl.style.display = (id === 'edit') ? 'block' : 'none';
+}
+
+/* --------------------------------------------------
+   LOADING OVERLAY
+-------------------------------------------------- */
+function showLoad(msg) {
+  document.getElementById('loading-overlay').style.display = 'flex';
+  document.getElementById('loading-label').textContent = msg || 'Laddar...';
+}
+
+function hideLoad() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+/* --------------------------------------------------
+   LOGIN / LOGOUT
+-------------------------------------------------- */
+function doLogin() {
+  const t = document.getElementById('token-input').value.trim();
+  if (!t) { showLoginErr('Ange din GitHub-nyckel.'); return; }
+  _token = t;
+  sessionStorage.setItem('_nct', t);
+  hideLoginErr();
+  loadContent();
+}
+
+function doLogout() {
+  _token = '';
+  sessionStorage.removeItem('_nct');
+  _content = null;
+  _contentSHA = '';
+  _pending = {};
+  document.getElementById('token-input').value = '';
+  showScreen('login');
+}
+
+function showLoginErr(msg) {
+  document.getElementById('login-error-msg').textContent = msg;
+  document.getElementById('login-error-wrap').style.display = 'block';
+}
+
+function hideLoginErr() {
+  document.getElementById('login-error-wrap').style.display = 'none';
+}
+
+/* --------------------------------------------------
+   GITHUB API HELPERS
+-------------------------------------------------- */
+async function ghGet(path) {
+  const r = await fetch(
+    `https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`,
+    { headers: { Authorization: `token ${_token}`, Accept: 'application/vnd.github.v3+json' } }
+  );
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw Object.assign(new Error(e.message || 'Okänt fel'), { status: r.status });
+  }
+  return r.json();
+}
+
+async function ghPut(path, textContent, sha, message) {
+  // Encode UTF-8 safely for btoa
+  const encoded = btoa(unescape(encodeURIComponent(textContent)));
+  const body = { message, content: encoded, branch: CFG.branch };
+  if (sha) body.sha = sha;
+  const r = await fetch(
+    `https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${_token}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw Object.assign(new Error(e.message || 'Okänt fel'), { status: r.status });
+  }
+  return r.json();
+}
+
+async function ghPutBinary(path, base64, message) {
+  // Check if file already exists (need SHA for update)
+  let sha = null;
+  try { const ex = await ghGet(path); sha = ex.sha; } catch(e) { /* new file, no SHA needed */ }
+  const body = { message, content: base64, branch: CFG.branch };
+  if (sha) body.sha = sha;
+  const r = await fetch(
+    `https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${_token}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw Object.assign(new Error(e.message || 'Okänt fel'), { status: r.status });
+  }
+  return r.json();
+}
+
+/* --------------------------------------------------
+   CONTENT LOAD
+-------------------------------------------------- */
+async function loadContent() {
+  showLoad('Hämtar innehåll...');
+  try {
+    const data    = await ghGet(CFG.contentFile);
+    _contentSHA   = data.sha;
+    const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+    _content      = JSON.parse(decoded);
+    hideLoad();
+    showScreen('edit');
+    renderAllBlocks();
+  } catch(err) {
+    hideLoad();
+    if (err.status === 401 || err.status === 403) {
+      _token = '';
+      sessionStorage.removeItem('_nct');
+      showLoginErr('Fel nyckel eller saknade rättigheter. Kontrollera och försök igen.');
+    } else if (err.status === 404) {
+      showLoginErr('Hittade inte innehållsfilen i repot. Kontrollera konfigurationen.');
+    } else {
+      showLoginErr('Kunde inte ansluta. Kontrollera anslutningen och försök igen.');
+    }
+  }
+}
+
+/* --------------------------------------------------
+   RENDERING
+-------------------------------------------------- */
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function rawImageSrc(path) {
+  if (!path) return '';
+  return `https://raw.githubusercontent.com/${CFG.owner}/${CFG.repo}/${CFG.branch}/${path}`;
+}
+
+function renderAllBlocks() {
+  const c = document.getElementById('blocks-container');
+  c.innerHTML = '';
+  if (!_content || !_content.blocks) {
+    c.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0">Inget innehåll hittades.</p>';
+    return;
+  }
+  _content.blocks.forEach(block => c.appendChild(renderCard(block)));
+}
+
+function renderCard(block) {
+  const card = document.createElement('div');
+  card.className = 'block-card';
+  card.dataset.bid = block.id;
+
+  const header = `<div class="block-header"><div class="block-name">${esc(block.label || block.id)}</div></div>`;
+  let fields = '<div class="block-fields">';
+
+  Object.entries(block.editable || {}).forEach(([key, value]) => {
+    const fk     = `${block.id}::${key}`;
+    const ft     = fieldType(key);
+    const lbl    = getLabel(key);
+    const penImg = _pending[fk];
+
+    fields += `<div class="field-row" data-fk="${esc(fk)}">`;
+    fields += `<div class="field-label-row">${esc(lbl)}</div>`;
+
+    if (ft === 'image') {
+      const src = penImg
+        ? penImg.dataUrl
+        : (value ? rawImageSrc(value) : '');
+
+      fields += `<div class="img-field-wrap">`;
+      fields += `  <div class="img-preview-wrap">`;
+      if (src) {
+        fields += `<img class="img-preview" src="${esc(src)}" alt="">`;
+      } else {
+        fields += `<div class="img-empty"><div class="img-empty-icon">📷</div><span>Ingen bild</span></div>`;
+      }
+      if (penImg) fields += `<div class="img-new-badge">Ny bild</div>`;
+      fields += `  </div>`;
+      fields += `  <div class="img-actions">`;
+      fields += `    <button class="btn btn-secondary" onclick="pickImage('${esc(fk)}')">📷 Byt bild</button>`;
+      if (value || penImg) {
+        fields += `    <button class="btn btn-ghost-red" onclick="removeImage('${esc(fk)}')">✕</button>`;
+      }
+      fields += `  </div>`;
+      fields += `</div>`;
+
+    } else if (ft === 'textarea') {
+      fields += `<textarea class="field-input" rows="3" data-fk="${esc(fk)}" oninput="onFieldChange(this)">${esc(value || '')}</textarea>`;
+
+    } else if (ft === 'email') {
+      fields += `<input class="field-input" type="email" inputmode="email" data-fk="${esc(fk)}" value="${esc(value || '')}" oninput="onFieldChange(this)">`;
+
+    } else if (ft === 'tel') {
+      fields += `<input class="field-input" type="tel" inputmode="tel" data-fk="${esc(fk)}" value="${esc(value || '')}" oninput="onFieldChange(this)">`;
+
+    } else if (ft === 'url') {
+      fields += `<input class="field-input" type="url" inputmode="url" data-fk="${esc(fk)}" value="${esc(value || '')}" oninput="onFieldChange(this)" placeholder="https://">`;
+
+    } else {
+      // alt and plain text
+      const im = (ft === 'alt') ? 'text' : 'text';
+      fields += `<input class="field-input" type="text" inputmode="${im}" data-fk="${esc(fk)}" value="${esc(value || '')}" oninput="onFieldChange(this)">`;
+    }
+
+    fields += `</div>`;
+  });
+
+  fields += '</div>';
+  card.innerHTML = header + fields;
+  return card;
+}
+
+/* --------------------------------------------------
+   FIELD CHANGE
+-------------------------------------------------- */
+function onFieldChange(el) {
+  const fk = el.dataset.fk;
+  const [bid, key] = fk.split('::');
+  const block = _content.blocks.find(b => b.id === bid);
+  if (block) block.editable[key] = el.value;
+}
+
+/* --------------------------------------------------
+   IMAGE PICKING
+-------------------------------------------------- */
+function pickImage(fk) {
+  _activePick = fk;
+  const inp = document.getElementById('image-file-input');
+  inp.value = '';
+  inp.click();
+}
+
+document.getElementById('image-file-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !_activePick) return;
+
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl   = ev.target.result;
+    const base64    = dataUrl.split(',')[1];
+    const ext       = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const ts        = Date.now();
+    const [bid, key]= _activePick.split('::');
+    const newPath   = `${CFG.imagesDir}/${bid}-${key}-${ts}.${ext}`;
+
+    _pending[_activePick] = { base64, dataUrl, newPath };
+
+    // Update content model
+    const block = _content.blocks.find(b => b.id === bid);
+    if (block) block.editable[key] = newPath;
+
+    // Re-render just this card
+    const card = document.querySelector(`.block-card[data-bid="${bid}"]`);
+    if (card) {
+      const newCard = renderCard(block);
+      card.replaceWith(newCard);
+    }
+    _activePick = null;
+  };
+  reader.readAsDataURL(file);
+});
+
+function removeImage(fk) {
+  delete _pending[fk];
+  const [bid, key] = fk.split('::');
+  const block = _content.blocks.find(b => b.id === bid);
+  if (block) block.editable[key] = '';
+  const card = document.querySelector(`.block-card[data-bid="${bid}"]`);
+  if (card) card.replaceWith(renderCard(block));
+}
+
+/* --------------------------------------------------
+   PUBLISH
+-------------------------------------------------- */
+function setStatus(msg, type) {
+  const el = document.getElementById('publish-status');
+  el.textContent = msg;
+  el.className   = 'publish-status ' + (type || '');
+}
+
+async function doPublish() {
+  const btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  setStatus('', '');
+  showLoad('Publicerar...');
+
+  try {
+    // 1. Upload pending images
+    const pending = Object.entries(_pending);
+    for (let i = 0; i < pending.length; i++) {
+      const [, img] = pending[i];
+      showLoad(`Laddar upp bild ${i+1} av ${pending.length}...`);
+      await ghPutBinary(img.newPath, img.base64, `Ny bild: ${img.newPath}`);
+    }
+    _pending = {};
+
+    // 2. Refresh SHA (in case of concurrent change)
+    showLoad('Kontrollerar version...');
+    const cur = await ghGet(CFG.contentFile);
+    _contentSHA = cur.sha;
+
+    // 3. Save content.json
+    showLoad('Sparar text och innehåll...');
+    const json = JSON.stringify(_content, null, 2);
+    await ghPut(CFG.contentFile, json, _contentSHA, 'Uppdaterar innehåll via mobiladmin');
+
+    // 4. Refresh local SHA
+    const updated = await ghGet(CFG.contentFile);
+    _contentSHA = updated.sha;
+
+    hideLoad();
+    btn.disabled = false;
+    setStatus('✓ Ändringar publicerade!', 'ok');
+    setTimeout(() => { if (document.getElementById('publish-status').textContent.startsWith('✓')) setStatus('', ''); }, 5000);
+
+  } catch(err) {
+    hideLoad();
+    btn.disabled = false;
+
+    if (err.status === 401 || err.status === 403) {
+      setStatus('Inloggningen har gått ut. Logga ut och in igen.', 'err');
+    } else if (err.status === 409 || err.status === 422) {
+      setStatus('Versionskollision. Ladda om sidan och försök igen.', 'err');
+    } else if (err.status === 413) {
+      setStatus('Bilden är för stor. Välj en mindre bild.', 'err');
+    } else {
+      setStatus('Kunde inte spara just nu. Försök igen.', 'err');
+    }
+  }
+}
+
+/* --------------------------------------------------
+   INIT
+-------------------------------------------------- */
+(function init() {
+  const saved = sessionStorage.getItem('_nct');
+  if (saved) {
+    _token = saved;
+    document.getElementById('token-input').value = saved;
+    showScreen('edit');  // show skeleton; loadContent will fill it
+    loadContent();
+  } else {
+    showScreen('login');
+  }
+  // Enter key on login
+  document.getElementById('token-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+})();
+</script>
+</body>
+</html>
