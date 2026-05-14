@@ -2,125 +2,128 @@
 
 Ett ultralätt, mobilanpassat CMS för GitHub Pages — utan databas, utan server, utan installationer.
 
-Sajtägaren redigerar allt innehåll från mobilen. Sajtbyggaren har full frihet att designa sajten. Allt hostas gratis på GitHub Pages.
+Det här är ett **mallrepo**. Det används av en konsult för att snabbt sätta upp en redigerbar webbplats åt en klient. Klienten får en sajt på sin egen GitHub som de kan uppdatera text och bilder på från mobilen — utan något tekniskt kunnande.
 
 ---
 
-## Så här fungerar det
+## Tre roller
 
-```
-content.json   ←  admin/index.html redigerar och publicerar
-     ↓
-index.html     ←  läser och renderar innehållet publikt
-```
-
-1. **Publik sajt** (`index.html`) hämtar `content.json` och renderar alla block.
-2. **Admin** (`admin/index.html`) visar redigerbara kort för varje block och publicerar ändringar direkt till GitHub via API.
-3. **Autentisering** sker med ett GitHub Personal Access Token (PAT) som sajtägaren anger vid inloggning. Token lagras bara i sessionminnet — försvinner när fliken stängs.
+| Roll | Ansvar |
+|------|--------|
+| **Konsulten** | Sätter upp klientens GitHub-konto och repo, skriver sajt-briefen, instruerar AI:n |
+| **AI:n (sajtbyggaren)** | Läser instruktionerna, bygger `index.html` och `content.json`, driftsätter på klientens repo |
+| **Klienten (sajtägaren)** | Redigerar text och bilder från mobilen via adminens webbgränssnitt — behöver inte förstå kod |
 
 ---
 
-## Snabbstart
-
-### 1. Skapa repot
-
-Forka detta repo eller skapa ett nytt och ladda upp filerna:
+## Hur det fungerar
 
 ```
-nano-cms/
-├── index.html          ← publik sajt (demo-layout ingår)
-├── content.json        ← allt redigerbart innehåll
-├── admin/
-│   └── index.html      ← mobiladminen
-├── bilder/             ← bilder hamnar här vid uppladdning
-└── .nojekyll
+etxgmg/nano-cms          klientens repo
+(detta mallrepo)   →     ├── index.html       ← publik sajt
+                         ├── content.json     ← allt redigerbart innehåll
+                         ├── admin/
+                         │   └── index.html   ← mobiladmin
+                         └── bilder/
 ```
 
-### 2. Aktivera GitHub Pages
+1. **Publik sajt** — `index.html` hämtar `content.json` och renderar hela sidan. All text och alla bilder kommer från JSON-filen, ingenting är hårdkodat.
+2. **Mobiladmin** — `admin/index.html` visar redigerbara kort för varje textblock och bild. Klienten loggar in med sin GitHub-nyckel, redigerar, trycker "Publicera".
+3. **Publicering** — adminen skriver direkt till klientens GitHub-repo via API. GitHub Pages publicerar automatiskt inom ~60 sekunder.
 
-Gå till **Settings → Pages → Source: Deploy from a branch → main / (root)**.
+---
 
-Sajten publiceras på: `https://etxgmg.github.io/nano-cms/`
-Adminen nås på: `https://etxgmg.github.io/nano-cms/admin/`
+## Konsultens arbetsflöde per klient
 
-### 3. Skapa ett Personal Access Token
+### 1. Sätt upp klientens GitHub
 
-Gå till: https://github.com/settings/tokens/new?scopes=repo&description=nano-cms
+- Skapa ett GitHub-konto åt klienten (eller använd ett befintligt)
+- Skapa ett nytt tomt repo på klientens konto
+- Skapa ett Personal Access Token med `repo`-scope: `github.com/settings/tokens`
 
-- Välj scopes: **repo** (fullständig åtkomst till privata och publika repos)
-- Sätt en giltighetstid (t.ex. 90 dagar eller "No expiration" för en privat sajt)
-- Kopiera token — du ser den bara en gång
+### 2. Instruera AI:n
 
-### 4. Anpassa konfigurationen
+Kopiera `AI-INSTRUCTIONS.md` från detta repo. Fyll i:
 
-I `admin/index.html`, längst upp i `<script>`-blocket:
-
-```js
-const CFG = {
-  owner:       'ditt-github-användarnamn',
-  repo:        'ditt-repo-namn',
-  branch:      'main',
-  contentFile: 'content.json',
-  imagesDir:   'bilder'
-};
+```
+Klientens GitHub-användarnamn : [användarnamn]
+Klientens repo-namn           : [repo-namn]
+Klientens GitHub-nyckel (PAT) : [ghp_...]
 ```
 
-Gör samma ändring i `index.html` om du ändrar repot.
+Skriv en sajt-brief längst ned i filen och ge den till din AI (t.ex. Claude, Cursor).
+
+### 3. AI:n levererar
+
+AI:n läser kontraktsreglerna från detta repo, bygger en sajt anpassad för klientens brief och driftsätter filerna direkt på klientens GitHub. Den kopierar adminens kod och pekar om den till klientens repo.
+
+### 4. Aktivera GitHub Pages
+
+På klientens repo: **Settings → Pages → Source: main / (root)**
+
+Sajten är live på: `https://[klientens-användarnamn].github.io/[repo-namn]/`
+Adminen nås på: `https://[klientens-användarnamn].github.io/[repo-namn]/admin/`
+
+---
+
+## Filer i detta mallrepo
+
+| Fil | Syfte |
+|-----|-------|
+| `AI-INSTRUCTIONS.md` | Instruktionsfil som konsulten fyller i och ger till AI:n |
+| `SITE-BUILDER-GUIDE.md` | Kontraktsregler för AI:n som bygger sajten (sv + en) |
+| `admin/index.html` | Mobiladmin — kopieras och konfigureras per klient |
+| `content.json` | Exempelstruktur för innehållsmodellen |
+| `index.html` | Exempelsajt som visar hur content.json renderas |
 
 ---
 
 ## Innehållsmodellen
 
-All text och alla bilder definieras i `content.json`. Sajtägaren kan bara redigera **värden** — inte lägga till, ta bort eller flytta block.
+All synlig text och alla bilder definieras i `content.json`. Klienten kan bara redigera **värden** — aldrig lägga till, ta bort eller flytta block.
 
-### Blocktyper (ingår i demo)
+### Exempelstruktur
 
-| Typ          | Fält                                              |
-|--------------|---------------------------------------------------|
-| `imageText`  | title, text, image, alt, buttonText, buttonHref   |
-| `paragraph`  | title, text                                       |
-| `contact`    | title, text, email, tel, address                  |
+```json
+{
+  "blocks": [
+    {
+      "id":    "hero",
+      "type":  "imageText",
+      "label": "Översta delen",
+      "editable": {
+        "title":      "Välkommen",
+        "text":       "Vi hjälper dig.",
+        "image":      "bilder/hero.jpg",
+        "alt":        "Framsidesbild",
+        "buttonText": "Ring oss",
+        "buttonHref": "tel:+46701234567"
+      }
+    }
+  ]
+}
+```
 
-### Fälttyper (automatisk detektering i adminen)
+### Automatisk fältdetektering i adminen
 
-| Fältnamn             | Visas som         |
-|----------------------|-------------------|
-| `text`, `body`, etc. | Flerlinjig text   |
-| `image`, `img`       | Bildväljare       |
-| `alt`                | Textfält          |
-| `email`              | E-postfält        |
-| `tel`, `phone`       | Telefonfält       |
-| `href`, `url`        | URL-fält          |
-| Övriga               | Textfält          |
-
----
-
-## Bygga en ny sajt ovanpå nano-cms
-
-Sajtbyggaren får göra **vad som helst** med layout och design, med ett krav:
-> **All synlig text och alla bilder måste läsas från `content.json` — ingenting hårdkodas i HTML.**
-
-Lägg till egna block i `content.json` och rendera dem i `index.html`. Adminen hanterar automatiskt alla fält i `editable`-objektet oavsett blocktyp.
-
----
-
-## Publiceringsflöde
-
-När sajtägaren trycker "Publicera ändringar" sker följande i bakgrunden:
-
-1. Eventuella nya bilder laddas upp till `bilder/` i repot
-2. Bildreferenserna uppdateras i `content.json`
-3. `content.json` committas till repot
-4. GitHub Pages publicerar automatiskt (tar ~30–60 sekunder)
+| Fältnamn | Visas som |
+|----------|-----------|
+| `text`, `body`, `description` | Flerlinjig text |
+| `image`, `img`, `photo` | Bildväljare + förhandsvisning |
+| `alt` | Textfält (bildbeskrivning) |
+| `email` | E-postfält |
+| `tel`, `phone` | Telefonfält |
+| `href`, `url`, `buttonHref` | URL-fält |
+| Övriga | Textfält (enrad) |
 
 ---
 
 ## Begränsningar (version 1)
 
-- Sajtägaren kan **inte** skapa, ta bort eller flytta block
-- Sajtägaren kan **inte** ändra layout, design eller tekniska inställningar
-- Autentisering kräver ett GitHub PAT — inte OAuth-flöde med backend
-- Max filstorlek per bild: ~50 MB (GitHub API-begränsning)
+- Klienten kan **inte** skapa, ta bort eller flytta block — bara redigera värden
+- Klienten kan **inte** ändra layout, design eller tekniska inställningar
+- Inloggning i adminen kräver ett GitHub PAT — inget OAuth-flöde med backend
+- Bilder laddas upp direkt via GitHub API (max ~50 MB per fil)
 
 ---
 
